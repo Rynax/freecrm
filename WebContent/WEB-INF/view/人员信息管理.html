@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>人员信息管理</title>
+<link href="css/public.css" rel="stylesheet" type="text/css" />
+<link href="css/common.css" rel="stylesheet" type="text/css" />
+<link href="font/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/html5.js"></script>
+<script type="text/javascript" src="js/common.js"></script>
+<script>
+$(function(){
+	//全选
+	selectCheck($(".checkAll"),$("input[name='sub']"));
+	//删除验证
+	delCheck($('#delete'), $("input[name='sub']"), $('.delete-text'));
+	//新增
+    clickShow($('#add'), [$('.bgdiv'), $('#add-pp')]);
+    //修改
+    clickShow($('.modify'), [$('.bgdiv'), $('#modify-pp')]);
+    //导入
+    clickShow($('#import'), [$('.bgdiv'), $('#import-pp')]);
+    //删除
+    clickShow($('#delete'), [$('.bgdiv'), $('#delete-pp')]);
+	
+    //点击关闭新增
+    clickClose($('#add-close'), [$('.bgdiv'), $('#add-pp')]);
+    //点击关闭修改
+    clickClose($('#modify-close'), [$('.bgdiv'), $('#modify-pp')]);
+    //点击关闭导入
+    clickClose($('#import-close'), [$('.bgdiv'), $('#import-pp')]);
+    //点击关闭删除
+    clickClose($('#delete-close'), [$('.bgdiv'), $('#delete-pp')]);
+
+    //点击取消新增
+    clickClose($('#add-cancel'), [$('.bgdiv'), $('#add-pp')]);
+    //点击取消修改
+    clickClose($('#modify-cancel'), [$('.bgdiv'), $('#modify-pp')]);
+    //点击取消导入
+    clickClose($('#import-cancel'), [$('.bgdiv'), $('#import-pp')]);
+    //点击取消删除
+    clickClose($('#delete-cancel'), [$('.bgdiv'), $('#delete-pp')]);
+
+
+    //弹出修改获取该行数据
+    $('.modify').bind('click', function() {
+	 var spppNo = $(this).parents('tr').find('.sppp-no').text();
+	 var spppName = $(this).parents('tr').find('.sppp-name').text();
+	 var spppTel = $(this).parents('tr').find('.sppp-tel').text();
+	 var spppEmail = $(this).parents('tr').find('.sppp-email').text();
+	 var spppSection = $(this).parents('tr').find('.sppp-section').text();
+	 var spppRemark = $(this).parents('tr').find('.sppp-remark').text();
+	 var modalNo=$('#modal-no');
+     var modalName=$('#modal-name');
+	 var modalTel=$('#modal-tel');
+	 var modalEmail=$('#modal-email');
+	 var modalSection=$('#modal-section option');
+	 var modalRemark=$('#modal-remark');
+     
+	 modalNo.attr('value',spppNo)
+	 modalName.attr('value',spppName);
+	 modalTel.attr('value',spppTel);
+	 modalEmail.attr('value',spppEmail);
+	 modalRemark.attr('value',spppRemark);
+	 
+	 modalSection.each(function(){
+		 if($(this).val()==spppSection){
+			 $(this).attr('selected','selected');
+			 return false;
+			 }
+		 })
+    })
+	})
+
+</script>
+</head>
+<body>
+<div id="erpcontent">
+  <div class="i-erpcontent clearfix">
+    <div class="i-erpconA">
+      <div class="pr20 clearfix">
+        <div class="fl">
+          <button type="button" class="form-btn-default mr10" id="import"><i class="fa fa-folder-open"></i><span class="pl5">批量导入</span></button>
+          <button type="button" class="form-btn-default mr10" id="add"><span class="pl5"><i class="fa fa-plus"></i>添加</span></button>
+          <button type="button" class="form-btn-default" id="delete"><i class="fa fa-trash"></i><span class="pl5">删除</span></button>
+        </div>
+        <div class="i-search-w1 fr">
+          <div class="form-group-input-1 w150 pr10">
+            <select class="select-option-1 bor-sol-448">
+              <option>全部</option>
+              <option>员工编号</option>
+              <option>员工姓名</option>
+              <option>所属部门</option>
+            </select>
+          </div>
+          <button type="button" class="form-btn-default btn-bg-448 ml10 fr">查询</button>
+          <div class="i-search-inputw1 w300 fr">
+            <input type="text" placeholder="请输入查询内容">
+          </div>
+        </div>
+      </div>
+      <div class="pr20 clearfix">
+        <div class="mt20">
+          <div class="w100_over_a">
+            <table width="100%" border="1" bordercolor="#a8a8a8" class="minw1000">
+              <tbody>
+                <tr class="i-table-tr2 bg-448 colfff">
+                  <th width="50">全选
+                    <input type="checkbox" class="checkAll"></th>
+                  <th>序号</th>
+                  <th>员工编号</th>
+                  <th>员工姓名</th>
+                  <th>手机号</th>
+                  <th>电子邮箱</th>
+                  <th>所属部门</th>
+                  <th>备注</th>
+                  <th width="100">操作</th>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">025</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">122222222</td>
+                  <td align="center" class="sppp-email">12454@qq.com</td>
+                  <td align="center" class="sppp-section">采购部</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+                <tr class="i-table-tr2">
+                  <td align="center"><input type="checkbox" class="" name="sub"></td>
+                  <td align="center">1</td>
+                  <td align="center" class="sppp-no">00222222ghggffffffff1</td>
+                  <td align="center" class="sppp-name">张三三</td>
+                  <td align="center" class="sppp-tel">13555555555</td>
+                  <td align="center" class="sppp-email">13555555555@qq.com</td>
+                  <td align="center" class="sppp-section">科技公司</td>
+                  <td class="pl10 pr10 sppp-remark">备注备备注备注备注备注注</td>
+                  <td align="center"><a href="javascript:void(0)" class="col4486d6 modify">修改</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+           <div class="page mt15">
+            <ul class="pagination">
+              <li class="first disabled"><span>首页</span></li>
+              <li class="prev disabled"><span>上一页</span></li>
+              <li class="active"><a href="#" data-page="0">1</a></li>
+              <li><a href="#" data-page="1">2</a></li>
+              <li><a href="#" data-page="2">3</a></li>
+              <li class="next"><a href="#" data-page="1">下一页</a></li>
+              <li class="last"><a href="#" data-page="2">末页</a></li>
+              <span class="">共<em class="colff6600">3</em>页&nbsp;&nbsp;去第&nbsp;&nbsp;<input type="text" class="text" value=""> 页 <input type="button" value="确定" class="btn"></span>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--弹出层-->
+<div class="PopLayer">
+  <div class="bgdiv" style="display:none;"></div>
+  <!--新增员工-->
+  <div class="PopLayer-conw PopLayer-posa3 w700" style="display:none" id="add-pp">
+    <h4 class="modal-title">新增人员<i class="fa  fa-remove posab-abs posab-r10 posab-t14 cup" id="add-close"></i></h4>
+    <form class="add-form" method="post" action="">
+      <div class="modal-body">
+        <table cellpadding="4px" width="100%" border="0">
+          <tbody>
+            <tr>
+              <td colspan="1" class="text-al-r">员工编号：<em class="colred">*</em></td>
+              <td colspan="1"><div class="control-input-w1 w252 pos-rel">
+                  <input type="text" class="control-input-1 ptb3lr5" name="addNo" placeholder="" value=""><label class="error"><em class="tip-arrow tip-arrow-top"></em>员工编号不能为空<em class="tip-arrow-close"></em></label>
+                </div></td>
+              <td colspan="1"  class="text-al-r" >员工姓名：<em class="colred">*</em></td>
+              <td colspan="1" ><div class="control-input-w1 w252 pos-rel">
+                  <input type="text" class="control-input-1 ptb3lr5" name="addName" placeholder="" value=""><label class="error"><em class="tip-arrow tip-arrow-top"></em>员工姓名不能为空<em class="tip-arrow-close"></em></label>
+                </div></td>
+            </tr>
+            <tr>
+              <td colspan="1" class="text-al-r">手机号码：<em class="colred">*</em></td>
+              <td colspan="1"><div class="control-input-w1 w252 pos-rel">
+                  <input type="text" class="control-input-1 ptb3lr5" name="addTel" placeholder="" value=""><label class="error"><em class="tip-arrow tip-arrow-top"></em>手机号码不能为空<em class="tip-arrow-close"></em></label>
+                </div></td>
+              <td colspan="1"  class="text-al-r" >电子邮箱：<em class="colred">*</em></td>
+              <td colspan="1" ><div class="control-input-w1 w252 pos-rel">
+                  <input type="text" class="control-input-1 ptb3lr5" name="addEmail" placeholder="" value=""><label class="error"><em class="tip-arrow tip-arrow-top"></em>电子邮箱不能为空<em class="tip-arrow-close"></em></label>
+                </div></td>
+            </tr>
+            <tr>
+              <td colspan="1" class="text-al-r">所属部门：<em class="colred">*</em></td>
+              <td colspan="1"><div class="form-group-input-1 w252">
+                  <select class="select-option-1 ptb3lr5" id="add-section">
+                    <option>科技公司</option>
+                    <option>采购部</option>
+                  </select>
+                </div></td>
+              <td colspan="1"  class="text-al-r" >注册时间：<em class="colred">*</em></td>
+              <td colspan="1" ><div class="bg-ccc ptb3lr5 col666"> 2015-09-23 09：22 </div></td>
+            </tr>
+            <tr>
+              <td colspan="1"  class="text-al-r">备注信息：</td>
+              <td colspan="3" ><div class="control-input-w1 w586">
+                  <textarea class="w-ratio-100 bor-textarea-1" rows="5"></textarea>
+                </div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer text-al-r">
+        <button type="submit" class="form-btn-default btn-bg-337" id="add-submit">确定</button>
+        <button type="button" class="form-btn-default ml10" id="add-cancel">取消</button>
+      </div>
+    </form>
+  </div>
+  <!--修改员工-->
+  <div class="PopLayer-conw PopLayer-posa3 w700" style="display:none" id="modify-pp">
+    <h4 class="modal-title">修改人员<i class="fa  fa-remove posab-abs posab-r10 posab-t14 cup" id="modify-close"></i></h4>
+    <form class="modify-form" method="post" action="">
+      <div class="modal-body">
+        <table cellpadding="4px" width="100%" border="0">
+          <tbody>
+            <tr>
+              <td colspan="1" class="text-al-r">员工编号：<em class="colred">*</em></td>
+              <td colspan="1"><div class="control-input-w1 w252 pos-rel">
+                  <input type="text" class="control-input-1 ptb3lr5" name="addNo" placeholder="" value="" id="modal-no"><label class="error"><em class="tip-arrow tip-arrow-top"></em>员工编号不能为空<em class="tip-arrow-close"></em></label>
+                </div></td>
+              <td colspan="1"  class="text-al-r" >员工姓名：<em class="colred">*</em></td>
+              <td colspan="1" ><div class="control-input-w1 w252 pos-rel">
+                  <input type="text" class="control-input-1 ptb3lr5" name="addName" placeholder="" value="" id="modal-name"><label class="error"><em class="tip-arrow tip-arrow-top"></em>员工姓名不能为空<em class="tip-arrow-close"></em></label>
+                </div></td>
+            </tr>
+            <tr>
+              <td colspan="1" class="text-al-r">手机号码：<em class="colred">*</em></td>
+              <td colspan="1"><div class="control-input-w1 w252 pos-rel">
+                  <input type="text" class="control-input-1 ptb3lr5" name="addTel" placeholder="" value="" id="modal-tel"><label class="error"><em class="tip-arrow tip-arrow-top"></em>手机号码不能为空<em class="tip-arrow-close"></em></label>
+                </div></td>
+              <td colspan="1"  class="text-al-r" >电子邮箱：<em class="colred">*</em></td>
+              <td colspan="1" ><div class="control-input-w1 w252 pos-rel">
+                  <input type="text" class="control-input-1 ptb3lr5" name="addEmail" placeholder="" value="" id="modal-email"><label class="error"><em class="tip-arrow tip-arrow-top"></em>电子邮箱不能为空<em class="tip-arrow-close"></em></label>
+                </div></td>
+            </tr>
+            <tr>
+              <td colspan="1" class="text-al-r">所属部门：<em class="colred">*</em></td>
+              <td colspan="1"><div class="form-group-input-1 w252">
+                  <select class="select-option-1 ptb3lr5" id="modal-section">
+                    <option>科技公司</option>
+                    <option>采购部</option>
+                  </select>
+                </div></td>
+              <td colspan="1"  class="text-al-r" >注册时间：<em class="colred">*</em></td>
+              <td colspan="1" ><div class="bg-ccc ptb3lr5 col666"> 2015-09-23 09：22 </div></td>
+            </tr>
+            <tr>
+              <td colspan="1"  class="text-al-r">备注信息：</td>
+              <td colspan="3" ><div class="control-input-w1 w586">
+                  <textarea class="w-ratio-100 bor-textarea-1" rows="5" id="modal-remark"></textarea>
+                </div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer text-al-r">
+        <button type="submit" class="form-btn-default btn-bg-337">确定</button>
+        <button type="button" class="form-btn-default ml10" id="modify-cancel">取消</button>
+      </div>
+    </form>
+  </div>
+  <!--导入弹出-->
+  <div class="PopLayer-conw PopLayer-posa1 w500" style="display:none;" id="import-pp">
+    <h4 class="modal-title">导入<i class="fa  fa-remove posab-abs posab-r10 posab-t14 cup" id="import-close"></i></h4>
+    <div class="modal-body">
+      <table cellpadding="3px" width="100%" border="0">
+        <tbody>
+          <tr>
+            <td>请选择导入文件：
+              <input name="" type="file"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer text-al-r">
+      <button type="submit" class="form-btn-default btn-bg-337">上传</button>
+      <button type="button" class="form-btn-default ml10" id="import-cancel">取消</button>
+    </div>
+  </div>
+  <!--删除弹出-->
+  <div class="PopLayer-conw PopLayer-posa1 w500" style="display:none;" id="delete-pp">
+    <h4 class="modal-title">删除<i class="fa  fa-remove posab-abs posab-r10 posab-t14 cup" id="delete-close"></i></h4>
+    <div class="modal-body">
+      <table cellpadding="3px" width="100%" border="0">
+        <tbody>
+          <tr>
+            <td><i class="pr20"><img src="images/icon-warning.gif" width="48" height="48"></i><span class="delete-text" alt="您确定要删除选中选项吗？">您确定要删除选中选项吗？</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer text-al-r">
+      <button type="submit" class="form-btn-default btn-bg-337">确定</button>
+      <button type="button" class="form-btn-default ml10" id="delete-cancel">取消</button>
+    </div>
+  </div>
+  <!--成功提示注意:有alert-success/alert-info/alert-warning/alert-danger-->
+  <div class="alert alert-success" style="display:none;">
+    <button type="button" class="close"> &times; </button>
+    成功！很好地完成了提交。 </div>
+</div>
+</body>
+</html>

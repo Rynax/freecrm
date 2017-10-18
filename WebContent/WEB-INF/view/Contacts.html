@@ -1,0 +1,392 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>人员信息管理</title>
+    <link href="css/public.css" rel="stylesheet" type="text/css" />
+    <link href="css/common.css" rel="stylesheet" type="text/css" />
+    <link href="font/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <script language="javascript" type="text/javascript" charset="UTF-8" src="js/jquery-1.8.2.js"></script>
+	<script type="text/javascript" src="js/Extjs/ext-all.js"></script>
+    <script type="text/javascript" src="js/jquery.form.js"></script>
+    <script type="text/javascript" src="js/html5.js"></script>
+    <script type="text/javascript" src="js/common.js"></script>
+    <script type="text/javascript" src="js/common_autoo.js"></script>
+    <script type="text/javascript" src="lib/jquery.poshytip.js"></script>
+    <script type="text/javascript" src="lib/jq.validate.js"></script>
+    <style type="text/css">
+        .x-grid-row td {
+            line-height: 32px;
+            vertical-align: middle;
+        }
+
+        .x-column-header-over {
+            background: #4486d6;
+        }
+
+        .x-column-header-text span {
+            font-size: 16px;
+        }
+    </style>
+
+    <script>
+        function SaveContactsData() {
+            $('#add-form').ajaxSubmit({
+                type: 'post', // 提交方式 get/post
+                url: 'SaveContactsInfoData',
+                success: function (json) { // data 保存提交后返回的数据，一般为 json 数据
+                	alert(json);
+                	data = JSON.parse(json);
+                    if (data.Success) {
+                        grid.store.reload();
+                        JsCommon.CloseDialog([$('.bgdiv'), $('#add-pp')]);
+                        /*参数一:窗口的标题;
+                            参数二:窗口的内容;
+                            参数三:回调函数;*/
+                        Ext.MessageBox.alert('系统提示', '保存成功', function (btn) { });
+                    } else {
+                        Ext.MessageBox.alert('系统提示', data.Error, function (btn) { });
+                    }
+                }
+            });
+            $(this).resetForm(); // 提交后重置表单
+        }
+
+        var grid;
+
+        //删除
+        function DeleteContactsData(rowId) {
+            $.ajax({
+                type: "post",
+                url: 'DeleteContactsData',
+                dataType: 'json',
+                data: { "Id": rowId },
+                success: function (data) {
+                	debugger;
+                	alert(data);
+                    if (data.Success) {
+                        grid.store.reload();
+                        Ext.MessageBox.alert('系统提示', '删除成功', function (btn) { });
+                    } else {
+                        Ext.MessageBox.alert('系统提示', '系统错误', function (btn) { });
+                    }
+                },
+                error: JsCommon.jqueryAjaxError
+            });
+        }
+        $(function () {
+            //全选
+            selectCheck($(".checkAll"), $("input[name='sub']"));
+            //删除验证
+            delCheck($('#delete'), $("input[name='sub']"), $('.delete-text'));
+            // 新增
+            clickShow($('#add'), [$('.bgdiv'), $('#add-pp')], function () {
+                $('#Id').val('');
+                $('#PName').val('');
+                $('#PDuties').val('');
+                $('#PDepart').val('');
+                $('#PTel').val('');
+                $('#PMail').val('');
+                $('#btnSave').attr({ "disabled": false });
+            });
+            //修改
+            clickShow($('.modify'), [$('.bgdiv'), $('#modify-pp')]);
+            //导入
+            clickShow($('#import'), [$('.bgdiv'), $('#import-pp')]);
+            //删除
+            clickShow($('#delete'), [$('.bgdiv'), $('#delete-pp')]);
+
+            //点击关闭新增
+            clickClose($('#add-close'), [$('.bgdiv'), $('#add-pp')], function () {
+                $.each($("[valType]"), function (i, n) {
+                    //清除可能已有的提示信息
+                    $(n).poshytip('hide');
+                });
+            });
+
+            //点击关闭修改
+            clickClose($('#modify-close'), [$('.bgdiv'), $('#modify-pp')]);
+            //点击关闭导入
+            clickClose($('#import-close'), [$('.bgdiv'), $('#import-pp')]);
+            //点击关闭删除
+            clickClose($('#delete-close'), [$('.bgdiv'), $('#delete-pp')]);
+
+            //点击取消新增
+            clickClose($('#add-cancel'), [$('.bgdiv'), $('#add-pp')], function () {
+                $.each($("[valType]"), function (i, n) {
+                    //清除可能已有的提示信息
+                    $(n).poshytip('hide');
+                });
+            });
+            //点击取消修改
+            clickClose($('#modify-cancel'), [$('.bgdiv'), $('#modify-pp')]);
+            //点击取消导入
+            clickClose($('#import-cancel'), [$('.bgdiv'), $('#import-pp')]);
+            //点击取消删除
+            clickClose($('#delete-cancel'), [$('.bgdiv'), $('#delete-pp')]);
+            //弹出修改获取该行数据
+            $('.modify').bind('click', function () {
+                var spppNo = $(this).parents('tr').find('.sppp-no').text();
+                var spppName = $(this).parents('tr').find('.sppp-name').text();
+                var spppTel = $(this).parents('tr').find('.sppp-tel').text();
+                var spppEmail = $(this).parents('tr').find('.sppp-email').text();
+                var spppSection = $(this).parents('tr').find('.sppp-section').text();
+                var spppRemark = $(this).parents('tr').find('.sppp-remark').text();
+                var modalNo = $('#modal-no');
+                var modalName = $('#modal-name');
+                var modalTel = $('#modal-tel');
+                var modalEmail = $('#modal-email');
+                var modalSection = $('#modal-section option');
+                var modalRemark = $('#modal-remark');
+
+                modalNo.attr('value', spppNo)
+                modalName.attr('value', spppName);
+                modalTel.attr('value', spppTel);
+                modalEmail.attr('value', spppEmail);
+                modalRemark.attr('value', spppRemark);
+
+                modalSection.each(function () {
+                    if ($(this).val() == spppSection) {
+                        $(this).attr('selected', 'selected');
+                        return false;
+                    }
+                })
+            })
+            Ext.onReady(init);
+
+            $("#btnSave").click(function () {
+                $(this).attr({ "disabled": "disabled" });
+                if ($.doValidate()) {
+                    SaveContactsData();
+                }
+                return false;
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        function init() {
+            var store = Ext.create('Ext.data.Store', {
+                fields: [
+                              "Id", "PName", "PDuties", "PDepart", "PTel", "PMail"
+                ],
+                pageSize: 10, //页容量10条数据
+                remoteSort: false, //是否在服务端排序 （true的话，在客户端就不能排序）
+                remoteFilter: true,
+                stripeRows: true,
+                proxy: {
+                    type: 'ajax',
+                    url: 'GetContactsInfoData',
+                    reader: {
+                        //这里的reader为数据存储组织的地方，下面的配置是为json格式的数据，例如：{"total":50,"rows":[{"a":"3","b":"4"}]}
+                        type: 'json', //返回数据类型为json格式
+                        root: 'rows', //数据
+                        totalProperty: 'total' //数据总条数
+                    }
+                },
+                sorters: [
+                    {
+                        //排序字段。
+                        property: 'Id',
+                        //排序类型，默认为 ASC
+                        direction: 'ASC'
+                    }
+                ],
+                autoLoad: true //即时加载数据
+            });
+            grid = Ext.create('Ext.grid.Panel', {
+                renderTo: Ext.getDom("w100_over_a"),
+                store: store,
+                height: 450,
+                width: '100%',
+                columnLines: true,
+                loadMask: true,
+                forceFit: true, //列表宽度自适应
+                selModel: { selType: 'checkboxmodel' }, //选择框
+                columns: [
+                { text: 'Id', dataIndex: 'Id', align: 'center', maxWidth: 80, hidden: true },
+                    { text: '姓名', dataIndex: 'PName', maxWidth: 220, align: 'center' },
+                    { text: '职务', dataIndex: 'PDuties', align: 'center', minWidth: 80 },
+                    { text: '所属部门', dataIndex: 'PDepart', maxWidth: 200, align: 'center' },
+                    { text: '手机号', dataIndex: 'PTel', maxWidth: 200, align: 'center' },
+                    { text: '电子邮箱', dataIndex: 'PMail', align: 'center' },
+                    {
+                        xtype: 'actioncolumn',
+                        text: '修改',
+                        width: 50,
+                        align: 'center',
+                        items: [
+                            {
+                                icon: 'images/contacts.png',
+                                tooltip: 'Delete',
+                                handler: function (grid, rowIndex, collndex) {
+                                    var rec = grid.getStore().getAt(rowIndex);
+                                    DeleteContactsData(rec.get('Id'));
+                                }
+                            }
+                        ]
+                    },
+                   {
+                       xtype: 'actioncolumn',
+                       text: '删除',
+                       width: 50,
+                       align: 'center',
+                       items: [
+                           {
+                               icon: 'images/err.png',
+                               tooltip: 'Edit',
+                               handler: function (grid, rowIndex, collndex) {
+                                   var rec = grid.getStore().getAt(rowIndex);
+                                   DeleteContactsData(rec.get('Id'));
+                               }
+                           }
+                       ]
+                   }
+                ],
+                dockedItems: [
+                    {
+                        xtype: 'pagingtoolbar',
+                        store: store, // same store GridPanel is using
+                        dock: 'bottom', //分页 位置
+                        emptyMsg: '没有数据',
+                        displayInfo: true,
+                        displayMsg: '当前显示{0}-{1}条记录  共{2}条记录 ',
+                        beforePageText: '第',
+                        afterPageText: '页/共{0}页'
+                    }
+                ],
+                listeners: {
+                    'afterrender': function (grid) {
+                        var elments = Ext.select(".x-column-header", true);
+                        elments.each(function (el) {
+                            el.setStyle("color", '#fff');
+                            el.setStyle("background", '#4486d6');
+                            el.setStyle("height", '45px');
+                        }, this);
+
+                    }
+                }
+            });
+
+            function showAlert() {
+                var selectedData = grid.getSelectionModel().getSelection()[0].data;
+
+                Ext.MessageBox.alert("标题", selectedData.cataId);
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="erpcontent">
+        <div class="i-erpcontent clearfix">
+            <div class="i-erpconA">
+                <div class="pr20 clearfix">
+                    <div class="fl">
+                        <button type="button" class="form-btn-default mr10" id="add"><span class="pl5"><i class="fa fa-plus"></i>添加</span></button>
+                        <button type="button" class="form-btn-default" id="delete"><i class="fa fa-trash"></i><span class="pl5">删除</span></button>
+                    </div>
+                    <div class="i-search-w1 fr">
+                        <div class="form-group-input-1 w150 pr10">
+                            <select class="select-option-1 bor-sol-448">
+                                <option>全部</option>
+                            </select>
+                        </div>
+                        <button type="button" class="form-btn-default btn-bg-448 ml10 fr">查询</button>
+                        <div class="i-search-inputw1 w300 fr">
+                            <input type="text" placeholder="请输入查询内容">
+                        </div>
+                    </div>
+                </div>
+                <div class="pr20 clearfix">
+                    <div class="mt20">
+                        <div id="w100_over_a" class="w100_over_a">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--弹出层-->
+    <div class="PopLayer">
+        <div class="bgdiv" style="display:none;"></div>
+        <!--新增-->
+        <div class="PopLayer-conw PopLayer-posa3 w700" style="display:none" id="add-pp">
+            <h4 class="modal-title">新增<i class="fa  fa-remove posab-abs posab-r10 posab-t14 cup" id="add-close"></i></h4>
+            <form id="add-form" class="add-form" method="post">
+                <input type="hidden" name="Id" id="Id" />
+                <div class="modal-body">
+                    <table cellpadding="4px" width="100%" border="0">
+                        <tbody>
+                            <tr>
+                                <td colspan="1" class="text-al-r">姓名：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w252 pos-rel">
+                                        <input type="text" class="control-input-1 ptb3lr5" id="PName" name="PName" placeholder="" value="" valtype="required" msg="请输入姓名">
+                                    </div>
+                                </td>
+                                <td colspan="1" class="text-al-r">职务：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w252 pos-rel">
+                                        <input type="text" class="control-input-1 ptb3lr5" id="PDuties" name="PDuties" placeholder="" value="" valtype="required" msg="请输入职务">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="1" class="text-al-r">所属部门：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w252 pos-rel">
+                                        <input type="text" class="control-input-1 ptb3lr5" id="PDepart" name="PDepart" placeholder="" value="" valtype="required" msg="请输入所属部门">
+                                    </div>
+                                </td>
+                                <td colspan="1" class="text-al-r">手机号：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w252 pos-rel">
+                                        <input type="text" class="control-input-1 ptb3lr5" id="PTel" name="PTel" placeholder="" value="" valtype="required" msg="请输入手机号">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="1" class="text-al-r">电子邮箱：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w252 pos-rel">
+                                        <input type="text" class="control-input-1 ptb3lr5" id="PMail" name="PMail" placeholder="" value="" valtype="required" msg="请输入电子邮箱">
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer text-al-r">
+                    <button type="button" id="btnSave" class="form-btn-default btn-bg-337">确定</button>
+                    <button type="button" class="form-btn-default ml10" id="add-cancel">取消</button>
+                </div>
+            </form>
+        </div>
+        <!--删除弹出-->
+        <div class="PopLayer-conw PopLayer-posa1 w500" style="display:none;" id="delete-pp">
+            <h4 class="modal-title">删除<i class="fa  fa-remove posab-abs posab-r10 posab-t14 cup" id="delete-close"></i></h4>
+            <div class="modal-body">
+                <table cellpadding="3px" width="100%" border="0">
+                    <tbody>
+                        <tr>
+                            <td><i class="pr20"><img src="images/icon-warning.gif" width="48" height="48"></i><span class="delete-text" alt="您确定要删除选中选项吗？">您确定要删除选中选项吗？</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer text-al-r">
+                <button type="submit" class="form-btn-default btn-bg-337">确定</button>
+                <button type="button" class="form-btn-default ml10" id="delete-cancel">取消</button>
+            </div>
+        </div>
+        <!--成功提示注意:有alert-success/alert-info/alert-warning/alert-danger-->
+        <div class="alert alert-success" style="display:none;">
+            <button type="button" class="close"> &times; </button>
+            成功！很好地完成了提交。
+        </div>
+    </div>
+</body>
+</html>

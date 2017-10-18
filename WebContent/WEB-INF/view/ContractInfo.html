@@ -1,0 +1,712 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>账号管理</title>
+    <link href="css/public.css" rel="stylesheet" type="text/css" />
+    <link href="css/common.css" rel="stylesheet" type="text/css" />
+    <link href="font/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <script language="javascript" type="text/javascript" charset="UTF-8" src="js/jquery-1.8.2.js"></script>
+    <script type="text/javascript" src="js/Extjs/ext-all.js"></script>
+    <script type="text/javascript" src="js/jquery.form.js"></script>
+    <script type="text/javascript" src="js/html5.js"></script>
+    <script type="text/javascript" src="js/common.js"></script>
+    <script type="text/javascript" src="js/common_autoo.js"></script>
+    <script type="text/javascript" src="lib/jquery.poshytip.js"></script>
+    <script type="text/javascript" src="lib/jq.validate.js"></script>
+    <style type="text/css">
+        .x-grid-row td {
+            line-height: 32px;
+            vertical-align: middle;
+        }
+
+        .x-column-header-over {
+            background: #4486d6;
+        }
+
+        .x-column-header-text span {
+            font-size: 16px;
+        }
+    </style>
+    <script>
+        var grid;
+        function SaveContractData() {
+
+            $('#add-form').ajaxSubmit({
+                type: 'post', // 提交方式 get/post
+                url: 'SaveContractInfoData',
+                success: function (json) { // data 保存提交后返回的数据，一般为 json 数据
+                	data = JSON.parse(json);
+                    if (data.Success) {
+                        grid.store.reload();
+                        JsCommon.CloseDialog([$('.bgdiv'), $('#add-pp')]);
+                        Ext.MessageBox.alert('系统提示', '保存成功', function (btn) { });
+                    } else {
+                        Ext.MessageBox.alert('系统提示', data.Error, function (btn) { });
+                    }
+                }
+            });
+            $(this).resetForm(); // 提交后重置表单
+        }
+        //删除
+        function DeleteContractData(rowId) {
+            $.ajax({
+                type: "post",
+                url: 'DeleteContractData',
+                dataType: 'json',
+                data: { "Id": rowId },
+                success: function (data) {
+                    if (data.Success) {
+                        grid.store.reload();
+                        Ext.MessageBox.alert('系统提示', '删除成功', function (btn) { });
+                    } else {
+                        Ext.MessageBox.alert('系统提示', '系统错误', function (btn) { });
+                    }
+
+                },
+                error: JsCommon.jqueryAjaxError
+            });
+        }
+
+        $(function () {
+            //全选
+            selectCheck($(".checkAll"), $("input[name='sub']"));
+            //删除验证
+            delCheck($('#delete'), $("input[name='sub']"), $('.delete-text'));
+            //全选角色
+            selectPcheck($(".jsCheckAll"), $("input[name='jssub']"));
+            //新增
+            clickShow($('#add'), [$('.bgdiv'), $('#add-pp')], function () {
+                $('#Id').val('');
+                $('#ProductName').val('');
+                $('#ProductCnt').val('');
+                $('#CompanyName').val('');
+                $('#Price').val('');
+                $('#SumMoney').val('');
+                $('#Rebate').val('');
+                $('#Remark').val('');
+                $('#ConfirmConfirm').val('');
+                $('#ReturnId').val('');
+                $('#InvoiceId').val('');
+                $('#btnSave').attr({ "disabled": false });
+            });
+            //修改
+            clickShow($('.modify'), [$('.bgdiv'), $('#modify-pp')]);
+            //补充权限
+            clickShow($('.power'), [$('#power-pp')]);
+            clickShow($('.modify-power'), [$('#modify-power-pp')]);
+            //删除
+            clickShow($('#delete'), [$('.bgdiv'), $('#delete-pp')]);
+
+            //点击关闭新增
+            clickClose($('#add-close'), [$('.bgdiv'), $('#add-pp')], function () {
+                $.each($("[valType]"), function (i, n) {
+                    //清除可能已有的提示信息
+                    $(n).poshytip('hide');
+                });
+            });
+            clickClose($('#modify-close'), [$('.bgdiv'), $('#modify-pp')]);
+            //点击关闭补充权限
+            clickClose($('#power-close'), [$('#power-pp')]);
+            clickClose($('#modify-power-close'), [$('#modify-power-pp')]);
+            //点击关闭删除
+            clickClose($('#delete-close'), [$('.bgdiv'), $('#delete-pp')]);
+
+            //点击取消新增
+            clickClose($('#add-cancel'), [$('.bgdiv'), $('#add-pp')], function () {
+                $.each($("[valType]"), function (i, n) {
+                    //清除可能已有的提示信息
+                    $(n).poshytip('hide');
+                });
+            });
+            clickClose($('#modify-cancel'), [$('.bgdiv'), $('#modify-pp')]);
+            //点击取消补充权限
+            clickClose($('#power-cancel'), [$('#power-pp')]);
+            clickClose($('#modify-power-cancel'), [$('#modify-power-pp')]);
+            //点击取消删除
+            clickClose($('#delete-cancel'), [$('.bgdiv'), $('#delete-pp')]);
+            Ext.onReady(init);
+
+            $("#btnSave").click(function () {
+                $(this).attr({ "disabled": "disabled" });
+                if ($.doValidate()) {
+                    SaveContractData();
+                }
+                return false;
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        function init() {
+            var store = Ext.create('Ext.data.Store', {
+                fields: [
+                     "Id", "ProductName", "ProductCnt", "CompanyName", "Price", "SumMoney", "Rebate", "Remark", "ConfirmConfirm", "ReturnId", "InvoiceId"
+                ],
+                pageSize: 10, //页容量10条数据
+                remoteSort: false, //是否在服务端排序 （true的话，在客户端就不能排序）
+                remoteFilter: true,
+                stripeRows: true,
+                proxy: {
+                    type: 'ajax',
+                    url: 'GetContractInfoData',
+                    reader: {
+                        //这里的reader为数据存储组织的地方，下面的配置是为json格式的数据，例如：{"total":50,"rows":[{"a":"3","b":"4"}]}
+                        type: 'json', //返回数据类型为json格式
+                        root: 'rows', //数据
+                        totalProperty: 'total' //数据总条数
+                    }
+                },
+                sorters: [
+                    {
+                        //排序字段。
+                        property: 'Id',
+                        //排序类型，默认为 ASC
+                        direction: 'ASC'
+                    }
+                ],
+                autoLoad: true //即时加载数据
+            });
+            grid = Ext.create('Ext.grid.Panel', {
+                renderTo: Ext.getDom("w100_over_a"),
+                store: store,
+                height: 450,
+                width: '100%',
+                columnLines: true,
+                loadMask: true,
+                forceFit: true, //列表宽度自适应
+                selModel: { selType: 'checkboxmodel' }, //选择框
+                columns: [
+                    { text: 'Id', dataIndex: 'Id', align: 'center', maxWidth: 80, hidden: true },
+                    { text: '产品名称', dataIndex: 'ProductName', maxWidth: 220, align: 'center' },
+                    { text: '数量', dataIndex: 'ProductCnt', align: 'center', minWidth: 80 },
+                    { text: '单位', dataIndex: 'CompanyName', maxWidth: 200, align: 'center' },
+                    { text: '售价', dataIndex: 'Price', maxWidth: 200, align: 'center' },
+                    { text: '金额', dataIndex: 'SumMoney', align: 'center' },
+                    { text: '折扣', dataIndex: 'Rebate', align: 'center' },
+                    { text: '备注', dataIndex: 'Remark', align: 'center' },
+                    { text: '确认发货', dataIndex: 'ConfirmConfirm', align: 'center' },
+                    { text: '回款信息', dataIndex: 'ReturnId', align: 'center' },
+                    { text: '发票信息', dataIndex: 'InvoiceId', align: 'center' },
+                    {
+                        xtype: 'actioncolumn',
+                        text: '修改',
+                        width: 50,
+                        align: 'center',
+                        items: [
+                            {
+                                icon: 'images/contacts.png',
+                                tooltip: 'Delete',
+                                handler: function (grid, rowIndex, collndex) {
+                                    var rec = grid.getStore().getAt(rowIndex);
+                                    DeleteContractData(rec.get('Id'));
+                                }
+                            }
+                        ]
+                    },
+                   {
+                       xtype: 'actioncolumn',
+                       text: '删除',
+                       width: 50,
+                       align: 'center',
+                       items: [
+                           {
+                               icon: 'images/err.png',
+                               tooltip: 'Edit',
+                               handler: function (grid, rowIndex, collndex) {
+                                   var rec = grid.getStore().getAt(rowIndex);
+                                   DeleteContractData(rec.get('Id'));
+                               }
+                           }
+                       ]
+                   }
+                ],
+                dockedItems: [
+                    {
+                        xtype: 'pagingtoolbar',
+                        store: store, // same store GridPanel is using
+                        dock: 'bottom', //分页 位置
+                        emptyMsg: '没有数据',
+                        displayInfo: true,
+                        displayMsg: '当前显示{0}-{1}条记录  共{2}条记录 ',
+                        beforePageText: '第',
+                        afterPageText: '页/共{0}页'
+                    }
+                ],
+                listeners: {
+                    'afterrender': function (grid) {
+                        var elments = Ext.select(".x-column-header", true);
+                        elments.each(function (el) {
+                            el.setStyle("color", '#fff');
+                            el.setStyle("background", '#4486d6');
+                            el.setStyle("height", '45px');
+                        }, this);
+                    }
+                }
+            });
+
+            function showAlert() {
+                var selectedData = grid.getSelectionModel().getSelection()[0].data;
+                Ext.MessageBox.alert("标题", selectedData.cataId);
+            }
+        }
+    </script>
+
+</head>
+<body>
+    <div id="erpcontent">
+        <div class="i-erpcontent clearfix">
+            <div class="i-erpconA">
+                <div class="pr20 clearfix">
+                    <div class="fl">
+                        <button type="button" class="form-btn-default mr10" id="add"><i class="fa fa-plus"></i><span class="pl5">添加</span></button>
+                        <button type="button" class="form-btn-default" id="delete"><i class="fa fa-trash"></i><span class="pl5">删除</span></button>
+                    </div>
+                    <div class="i-search-w1 fr">
+                        <div class="form-group-input-1 w150 pr10">
+                            <select class="select-option-1 bor-sol-448">
+                                <option>全部</option>
+                            </select>
+                        </div>
+                        <button type="button" class="form-btn-default btn-bg-448 ml10 fr">查询</button>
+                        <div class="i-search-inputw1 w300 fr">
+                            <input type="text" placeholder="请输入查询内容">
+                        </div>
+                    </div>
+                </div>
+                <div class="pr20 clearfix">
+                    <div class="mt20">
+                        <div id="w100_over_a" class="w100_over_a">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--弹出层-->
+    <div class="PopLayer">
+        <div class="bgdiv" style="display:none"></div>
+        <!--新增帐号-->
+        <div class="PopLayer-conw PopLayer-posa2 w700" style="display:none" id="add-pp">
+            <h4 class="modal-title">新增<i class="fa  fa-remove posab-abs posab-r10 posab-t14 cup" id="add-close"></i></h4>
+            <form class="add-form" id="add-form" method="post">
+                <div class="modal-body">
+                    <table cellpadding="4px" width="100%" border="0">
+                        <tbody>
+                            <tr>
+                                <td colspan="1" class="text-al-r">产品名称：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w200 pos-rel">
+                                        <input type="text" id="ProductName" name="ProductName" class="control-input-1 ptb3lr5" placeholder="请输入产品名称" value="" valtype="required" msg="请输入产品名称">
+                                    </div>
+                                </td>
+                                <td colspan="1" class="text-al-r">  数量：</td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w200 pos-rel">
+                                        <input type="text" id="ProductCnt" name="ProductCnt" class="control-input-1 ptb3lr5" placeholder="请输入产品数量" value="" valtype="required" msg="请输入数量">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="1" class="text-al-r">单位：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w200 pos-rel">
+                                        <input type="text" id="CompanyName" name="CompanyName" class="control-input-1 ptb3lr5" placeholder="请输入单位" value="" valtype="required" msg="请输入单位">
+                                    </div>
+                                </td>
+                                <td colspan="1" class="text-al-r">售价:<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w200 pos-rel">
+                                        <input type="text" id="Price" name="Price" class="control-input-1 ptb3lr5" placeholder="请输入售价" value="" valtype="required" msg="请输入售价">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="1" class="text-al-r">金额：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w200 pos-rel">
+                                        <input type="text" id="SumMoney" name="SumMoney" class="control-input-1 ptb3lr5" placeholder="请输入金额" value="" valtype="required" msg="请输入金额">
+                                    </div>
+                                </td>
+                                <td colspan="1" class="text-al-r">折扣:<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w200 pos-rel">
+                                        <input type="text" id="Rebate" name="Rebate" class="control-input-1 ptb3lr5" placeholder="请输入折扣" value="" valtype="required" msg="请输入折扣">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="1" class="text-al-r">确认发货：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w200 pos-rel">
+                                        <input type="text" id="ConfirmConfirm" name="ConfirmConfirm" class="control-input-1 ptb3lr5" placeholder="请输入确认发货" value="" valtype="required" msg="请输入确认发货">
+                                    </div>
+                                </td>
+                                <td colspan="1" class="text-al-r">回款信息:<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w200 pos-rel">
+                                        <input type="text" id="ReturnId" name="ReturnId" class="control-input-1 ptb3lr5" placeholder="请输入回款信息" value="" valtype="required" msg="请输入回款信息">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="1" class="text-al-r">发票信息：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w200 pos-rel">
+                                        <input type="text" id="InvoiceId" name="InvoiceId" class="control-input-1 ptb3lr5" placeholder="请输入发票信息" value="" valtype="required" msg="请输入发票信息">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="1" class="text-al-r">备注信息：</td>
+                                <td colspan="3">
+                                    <div class="control-input-w1 w300">
+                                        <textarea id="Remark" name="Remark" class="w-ratio-100 bor-textarea-1" rows="3"></textarea>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer text-al-r">
+                    <button id="btnSave" type="button" class="form-btn-default btn-bg-337">确定</button>
+                    <button type="button" class="form-btn-default ml10" id="add-cancel">取消</button>
+                </div>
+            </form>
+        </div>
+
+        <!--补充权限-->
+        <div class="PopLayer-conw PopLayer-posa2 w700" style="display:none;" id="power-pp">
+            <h4 class="modal-title">补充权限：除角色外还需单独增加的权限<i class="fa  fa-remove posab-abs posab-r10 posab-t14 cup" id="power-close"></i></h4>
+            <div class="modal-body-li">
+                <div class="Pop-modal-b-th">
+                    <ul>
+                        <li><a href="#">操作权限</a></li>
+                    </ul>
+                </div>
+                <div class="Pop-Supplement-con" style="min-height:350px;">
+                    <ul>
+                        <li class="pb5">
+                            <input type="checkbox" class=" mr5 jsCheckAll">
+                            档案管理
+                            <ul class="ml20 mt5">
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    基础数据档案
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="pb5">
+                            <input type="checkbox" class=" mr5 jsCheckAll">
+                            VRM采购管理
+                            <ul class="ml20 mt5">
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    采购订单管理
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    新增采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    确认采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    采购订单管理
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    新增采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    确认采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    采购订单管理
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    新增采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    确认采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    采购订单管理
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    新增采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    确认采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    采购订单管理
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    新增采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    确认采购单
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="pb5">
+                            <input type="checkbox" class=" mr5 jsCheckAll">
+                            网站管理员
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer text-al-r">
+                <button type="submit" class="form-btn-default btn-bg-337">确定</button>
+                <button type="button" class="form-btn-default ml10" id="power-cancel">取消</button>
+            </div>
+        </div>
+        <!--修改帐号-->
+        <div class="PopLayer-conw PopLayer-posa2 w700" style="display:none" id="modify-pp">
+            <h4 class="modal-title">修改帐号<i class="fa  fa-remove posab-abs posab-r10 posab-t14 cup" id="modify-close"></i></h4>
+            <form class="modify-form">
+                <div class="modal-body">
+                    <table cellpadding="4px" width="100%" border="0">
+                        <tbody>
+                            <tr>
+                                <td colspan="4">
+                                    <label class="pr20">
+                                        <input type="radio" name="zhzt" checked="checked">
+                                        正常状态
+                                    </label>
+                                    <label class="pr20">
+                                        <input type="radio" name="zhzt">
+                                        停用该账号
+                                    </label>
+                                    <label class="pr20">
+                                        <input type="radio" name="zhzt">
+                                        锁定该账号
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="1" class="text-al-r">登录帐号：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="control-input-w1 w200 pos-rel">
+                                        <input type="text" name="addname" class="control-input-1 ptb3lr5" placeholder="请输入帐号" value="">
+                                        <label class="error"><em class="tip-arrow tip-arrow-top"></em>帐号不能为空<em class="tip-arrow-close"></em></label>
+                                    </div>
+                                </td>
+                                <td colspan="1" class="text-al-r">初始密码：</td>
+                                <td colspan="1">123456</td>
+                            </tr>
+                            <tr>
+                                <td colspan="1" class="text-al-r">所属部门：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="form-group-input-1 w200">
+                                        <select class="select-option-1 ptb3lr5">
+                                            <option>科技公司</option>
+                                            <option>采购部</option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td colspan="1" class="text-al-r">员工姓名:<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="form-group-input-1 w200">
+                                        <select class="select-option-1 ptb3lr5">
+                                            <option>张三</option>
+                                            <option>小四</option>
+                                        </select>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="1" class="text-al-r">备注信息：</td>
+                                <td colspan="3">
+                                    <div class="control-input-w1 w300">
+                                        <textarea class="w-ratio-100 bor-textarea-1" rows="3"></textarea>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="modal-cutOff">
+                        <p>设置权限</p>
+                    </div>
+                    <table cellpadding="4px" width="100%" border="0">
+                        <tbody>
+                            <tr>
+                                <td colspan="1" class="text-al-r">管理店铺：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="form-group-input-1 w200">
+                                        <select class="select-option-1 ptb3lr5">
+                                            <option>--所有店铺--</option>
+                                            <option>皖枫林当当店</option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td colspan="1" class="text-al-r">管理仓库：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="form-group-input-1 w200">
+                                        <select class="select-option-1 ptb3lr5">
+                                            <option>--所有仓库--</option>
+                                            <option>北京仓</option>
+                                        </select>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="1" class="text-al-r">角色权限：<em class="colred">*</em></td>
+                                <td colspan="1">
+                                    <div class="form-group-input-1 w200">
+                                        <select class="select-option-1 ptb3lr5">
+                                            <option>客服</option>
+                                            <option>采购员</option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td colspan="1" class="text-al-r"><a href="javascript:void(0)" class="col469 modify-power">权限补充</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer text-al-r">
+                    <button type="submit" class="form-btn-default btn-bg-337" id="modify-submit">确定</button>
+                    <button type="button" class="form-btn-default ml10" id="modify-cancel">取消</button>
+                </div>
+            </form>
+        </div>
+
+        <!--补充权限-->
+        <div class="PopLayer-conw PopLayer-posa2 w700" style="display:none;" id="modify-power-pp">
+            <h4 class="modal-title">补充权限：除角色外还需单独增加的权限<i class="fa  fa-remove posab-abs posab-r10 posab-t14 cup" id="modify-power-close"></i></h4>
+            <div class="modal-body-li">
+                <div class="Pop-modal-b-th">
+                    <ul>
+                        <li><a href="#">操作权限</a></li>
+                    </ul>
+                </div>
+                <div class="Pop-Supplement-con" style="min-height:350px;">
+                    <ul>
+                        <li class="pb5">
+                            <input type="checkbox" class=" mr5 jsCheckAll">
+                            档案管理
+                            <ul class="ml20 mt5">
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    基础数据档案
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="pb5">
+                            <input type="checkbox" class=" mr5 jsCheckAll">
+                            VRM采购管理
+                            <ul class="ml20 mt5">
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    采购订单管理
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    新增采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    确认采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    采购订单管理
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    新增采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    确认采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    采购订单管理
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    新增采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    确认采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    采购订单管理
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    新增采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    确认采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    采购订单管理
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    新增采购单
+                                </li>
+                                <li class="pr10">
+                                    <input type="checkbox" class=" mr5" name="jssub">
+                                    确认采购单
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="pb5">
+                            <input type="checkbox" class=" mr5 jsCheckAll">
+                            网站管理员
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer text-al-r">
+                <button type="submit" class="form-btn-default btn-bg-337">确定</button>
+                <button type="button" class="form-btn-default ml10" id="modify-power-cancel">取消</button>
+            </div>
+        </div>
+        <!--删除弹出-->
+        <div class="PopLayer-conw PopLayer-posa1 w500" style="display:none;" id="delete-pp">
+            <h4 class="modal-title">删除<i class="fa  fa-remove posab-abs posab-r10 posab-t14 cup" id="delete-close"></i></h4>
+            <div class="modal-body">
+                <table cellpadding="3px" width="100%" border="0">
+                    <tbody>
+                        <tr>
+                            <td><i class="pr20"><img src="images/icon-warning.gif" width="48" height="48"></i><span class="delete-text" alt="您确定要删除选中选项吗？">您确定要删除选中选项吗？</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer text-al-r">
+                <button type="submit" class="form-btn-default btn-bg-337">确定</button>
+                <button type="button" class="form-btn-default ml10" id="delete-cancel">取消</button>
+            </div>
+        </div>
+        <!--成功提示注意:有alert-success/alert-info/alert-warning/alert-danger-->
+        <div class="alert alert-success" style="display:none;">
+            <button type="button" class="close"> &times; </button>
+            成功！很好地完成了提交。
+        </div>
+    </div>
+</body>
+</html>
